@@ -1,3 +1,5 @@
+#### Simulation II by Joshua Yao-Yu Lin, Warren Morningstar, Hang Yu
+
 from __future__ import division
 import sys
 sys.path.insert(0, '../EvilLens/')

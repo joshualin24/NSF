@@ -288,14 +288,12 @@ def Generate_single_training_example(numpix=192,pix_res=0.04):
     PSF_sigma = 5
     blurred_output_lens = gaussian_filter(final_image, PSF_sigma)
 
-    #lens_argmax = np.unravel_index(np.argmax(lens_image, axis=None), lens_image.shape) #np.argmax(lens_image)
 
     output_lens_qual_pos = np.argwhere(blurred_output_lens > (np.amax(blurred_output_lens)/10) )
     output_lens_non_pos = np.argwhere(blurred_output_lens < (np.amax(blurred_output_lens)/15) )
 
 
     Msub_solarmass = msub*units.solMass
-    #print("Msub_solarmass", Msub_solarmass)
     EinRad_M = 4.0*np.pi*(lens.sigma/constants.c)**2* lens.Dds/lens.Ds
 
 
@@ -303,34 +301,24 @@ def Generate_single_training_example(numpix=192,pix_res=0.04):
                     /(np.pi * EinRad_M * lens.Dd))**(1.0/3.0)
     Rtidal = (Sigma_sub / lens.sigma / np.sqrt(4.0/np.pi)) * EinRad_M
     Rcore = Rtidal.decompose().value * 3600.0*180.0/np.pi
-    # detectable_subhalos_lens = evil.AnalyticPseudoJaffeLens(lens.Zd,lens.Zs)
-    # detectable_subhalos_lens.setup_grid(NX=lens.NX,NY=lens.NY,pixscale=lens.pixscale,offset=lens.offset)
-    # detectable_subhalos_lens.build_kappa_map(0.0,Rcore[0],[np.random.random(),np.random.random()],n=4,GAMMA=2)
-    # detectable_subhalos_lens.deflect()
 
     detectable_num_subhalo = 0
     detectable_pos_sub_list = []
     detectable_msub_list = []
     try:
         effective_radius = Subhalo_einstein_radius(msub,lens)
-        #print("effective_radius", effective_radius[1])
         for i, pos in enumerate(pos_sub):
             grid_pos = pos/pix_res
             grid_pos[0] += numpix//2
             grid_pos[1] += numpix//2
             min_distance = distance_matrix([grid_pos], output_lens_qual_pos).min()
-            #print("min_distance", min_distance)
-            #print("round", round(effective_radius[i]/pix_res))
-            #if min_distance < 3:
             if min_distance < round(effective_radius[i]/pix_res):
-                #print("round(effective_radius[i]/pix_res)", round(effective_radius[i]/pix_res))
                 detectable_num_subhalo += 1
                 detectable_pos_sub_list.append(pos_sub[i])
                 detectable_msub_list.append(msub[i])
             detectable_pos_sub = np.array(detectable_pos_sub_list)
             detectable_msub = np.array(detectable_msub_list)
 
-        #print(detectable_msub_list)
 
         detectable_subhalo_lens = Compute_detectable_subhalo_lens(lens,detectable_msub_list,detectable_pos_sub_list)
 

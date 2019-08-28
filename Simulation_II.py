@@ -393,33 +393,6 @@ if __name__=="__main__":
                                                                                                                                                           pix_res=0.02)
             difference_image = final_image - lens_image
             difference = sum(sum(final_image - lens_image))
-            # print("msub:", msub)
-            # print("pos_sub:", pos_sub)
-            # print("difference:", difference)n
-            # print("abs", abs(difference))
-            # print(sum(sum(final_image)))
-            # print(sum(sum(lens_image)))
-            # print("ratio:", (abs(difference)/sum(sum(lens_image))))
-            # if sum(sum(lens_image)) >= 10000:
-            #     if (abs(difference)/sum(sum(lens_image)) > 1/10) or (abs(difference) > 500):
-            #         valid_sim.append(i+1)
-            #print(pos_sub)
-            #print(sum(detectable_subhalo_kappa_log10))
-            # print(np.argwhere(detectable_subhalo_kappa_log10 == np.inf))
-            # #inf_idx = np.argwhere(detectable_subhalo_kappa_log10 == np.inf)
-            # max_idx = np.argwhere(detectable_subhalo_kappa == np.amax(detectable_subhalo_kappa))
-            # print("max_idx", max_idx)
-            #print(inf_idx[0, 0], inf_idx[0, 1])
-            #print(detectable_subhalo_kappa[inf_idx[0, 0], inf_idx[0, 1]])
-            #print(detectable_subhalo_kappa[5, 2])
-            #print(np.log10(np.amin(detectable_subhalo_kappa)))
-            #print(sum(sum(np.isinf(detectable_subhalo_kappa))))
-            # np.savetxt(file_path + "msub" + "_" + "%07d" % (i+1) + ".txt" , np.log10(msub))
-            # # np.savetxt(file_path +"pos_sub" + "_" + "%07d"  % (i+1) + ".txt" , pos_sub)
-            # print(lens_argmax)
-            # print(lens_qual_pos.shape)
-            # print(lens_Zl, lens_Zs)
-            #print("msub and pos_sub", msub, pos_sub)
             failed_data = []
             try:
                 #np.save(file_path + "lens_argmax" + "_" + "%07d" % (i+1) + ".npy", lens_argmax)
@@ -434,55 +407,15 @@ if __name__=="__main__":
                 np.save(file_path + "detectable_num_subhalo" + "_" + "%07d"  % (i+1) + ".npy", detectable_num_subhalo)
                 np.save(file_path + "detectable_pos_sub" + "_" + "%07d"  % (i+1) + ".npy", detectable_pos_sub)
                 np.save(file_path + "detectable_msub" + "_" + "%07d"  % (i+1) + ".npy", detectable_msub)
-                #np.save(file_path + "lens_qual_pos" + "_" + "%07d"  % (i+1) + ".npy", lens_qual_pos)
-                #print("lens_qual_pos", lens_qual_pos)
-                #print("detectable_num_subhalo", detectable_num_subhalo)
-                # PSF_sigma = 2 #200000 * pix_res
-                # final_image = gaussian_filter(final_image, sigma=PSF_sigma)
-                # lens_image = gaussian_filter(lens_image, sigma=PSF_sigma)
+
 
             except:
                 failed_data.append(i)
 
-            # try:
-            #     ##### Operation for visualization
-            #     eplison = 0.0001
-            #     final_image = np.asarray(final_image / np.max(final_image) * 255., dtype=np.int32)
-            #     lens_image = np.asarray(lens_image / np.max(lens_image) * 255., dtype=np.int32)
-            #     difference_image = np.asarray(difference_image / np.max(difference_image) * 255., dtype=np.int32)
-            #     subhalo_kappa_log10 -= subhalo_kappa_log10.min()
-            #     subhalo_kappa_log10 = np.asarray(subhalo_kappa_log10 / np.max(subhalo_kappa_log10) * 255., dtype=np.int32)
-            #     cv2.imwrite(file_path +"subhalo_kappa_log10" + "_" + "%07d" % (i+1) + ".png", subhalo_kappa_log10)
-            #     detectable_subhalo_kappa_log10 -= detectable_subhalo_kappa_log10.min()
-            #     detectable_subhalo_kappa_log10 = np.asarray(detectable_subhalo_kappa_log10 / np.max(detectable_subhalo_kappa_log10) * 255., dtype=np.int32)
-            #     cv2.imwrite(file_path +"detectable_subhalo_kappa_log10" + "_" + "%07d" % (i+1) + ".png", detectable_subhalo_kappa_log10)
-            #     cv2.imwrite(file_path + "residual" + "_" + "%07d" % (i+1) + ".png", difference_image)
-            #     cv2.imwrite(file_path +"output_lens" + "_" + "%07d" % (i+1) + ".png", final_image)
-            #     cv2.imwrite(file_path +"clear_lens" + "_" + "%07d" % (i+1) + ".png", lens_image)
-            # except:
-            #     pass
-            #failed_data = np.array(failed_data)
 
-            #("output_lens" + "_" + "%03d" % (i+1), output_image)
-            #print("pos_sub", pos_sub)
-            #difference = final_image - lens_image
 
             if show_image:
-                # plt.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
-                # plt.subplot(1,5,1)
-                # im1 = plt.imshow(subhalo_kappa)
-                # plt.title("Subhalo Density")
-                # plt.colorbar(mappable=im1,fraction=0.046, pad=0.04)
-                #
-                # plt.subplot(1,5,2)
-                # im2 = plt.imshow(subhalo_kappa_log10)
-                # plt.title("Subhalo Density (log10)")
-                # plt.colorbar(mappable=im2,fraction=0.046, pad=0.04)
-                #
-                # plt.subplot(1,5,3)
-                # plt.imshow(lens_source)
-                # plt.title("Background Galaxy (Source)")
-                #
+
                 print(lens_Zl, lens_Zs)
                 plt.subplot(1,5,1)
                 plt.imshow(lens_image)
@@ -495,9 +428,6 @@ if __name__=="__main__":
                 plt.title("(Has Subhalo)", fontsize= 10)
 
                 plt.subplot(1,5,3)
-                # print(sum(sum(final_image)))
-                # print(sum(sum(lens_image)))
-                print(difference)
                 plt.imshow(difference_image)
                 #plt.colorbar()
                 #plt.title("Lensing Image difference(Has/No Subhalo)", fontsize= 10)
@@ -516,5 +446,4 @@ if __name__=="__main__":
 
             gc.collect()
 
-        #np.save(file_path + 'valid_sim.npy', np.array(valid_sim))
         np.save(file_path + 'failed_data.npy', np.array(failed_data))

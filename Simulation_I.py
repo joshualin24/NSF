@@ -27,27 +27,37 @@ import os, sys
 #import lenstronomy.Util.image_util as image_util
 from tqdm import tqdm
 
+import argparse
+# Define argument
+parser = argparse.ArgumentParser()
+parser.add_argument('--train', dest='IsTrain', action='store_true')
+parser.add_argument('--test', dest='IsTrain', action='store_false')
+args = parser.parse_args()
 
-num_sample = 5
-train = True
+IsTrain = args.IsTrain
+
+if IsTrain:
+    num_samples = 50
+else:
+    num_samples = 10
+
+
 folder = "./data/"
 imsize = 64
 
 if not os.path.exists(folder):
     os.mkdir(folder)
 
-if train:
+if IsTrain:
+    npr.seed(12345)
     folder = folder + 'data_train/'
 else:
+    npr.seed(54321)
     folder = folder + 'data_test/'
 
 if not os.path.exists(folder):
     os.mkdir(folder)
 
-if train:
-    npr.seed(12345)
-else:
-    npr.seed(54321)
 
 
 
@@ -107,130 +117,134 @@ class source(object):
 
 
 
-index = 0
-for i in tqdm(range(num_sample)):
+
+if __name__=="__main__":
+    index = 0
+    show_image = False
+    for i in tqdm(range(num_samples)):
 
 
-    src = source(1.0, 1.0, imsize)
-    true_source = src.source_map(5, 0.0, 0.0)
+        src = source(1.0, 1.0, imsize)
+        true_source = src.source_map(5, 0.0, 0.0)
 
 
-    # lensing_image_parameters
-    lens_scale= npr.uniform(0.2, 0.3)
-    x_lens = npr.uniform(-0.3, 0.3)
-    y_lens = npr.uniform(-0.3, 0.3)
-    elp = npr.uniform(0.0, 0.3)
-    elp_angle = np.pi/4
-    ex_shear_x, ex_shear_y = 0.0, 0.0
+        # lensing_image_parameters
+        lens_scale= npr.uniform(0.2, 0.3)
+        x_lens = npr.uniform(-0.3, 0.3)
+        y_lens = npr.uniform(-0.3, 0.3)
+        elp = npr.uniform(0.0, 0.3)
+        elp_angle = np.pi/4
+        ex_shear_x, ex_shear_y = 0.0, 0.0
 
-    ####N_sub_workzone
-
-
-    N = npr.randint(1, 4)
-    x_sub_list = [0]*N
-    y_sub_list = [0]*N
-    alpha_0_sub_list = [0]*N
-    r_t_sub_list = [0]*N
-    real_x_sub_list = [0]*N
-    real_y_sub_list = [0]*N
-    has_subhalo_list = [0]*N
-
-    alpha_sub_x_list = [0]*N
-    alpha_sub_y_list = [0]*N
-
-    imsize = imsize
-    image_x = np.linspace(-1,1, imsize)
-    image_y = np.linspace(-1,1, imsize)
-    imxgrid, imygrid = np.meshgrid(image_x, image_y)
-    for j in range(N): #npr.choice(N,(npr.randint(5)+1)):
-        alpha_0_sub = 0.15#npr.uniform(0.1, 0.2)#0.1
-        r_t_sub = 0.4 #npr.uniform(0.02, 0.07)# 0.04
-        r_sub = lens_scale
-        phi = 2 * np.pi * npr.random_sample()
-        x_sub = r_sub * np.cos(phi)
-        y_sub = r_sub * np.sin(phi)
-        real_x_sub = x_sub + x_lens
-        real_y_sub = y_sub + y_lens
-        x_sub_list[j] = x_sub
-        y_sub_list[j] = y_sub
-        real_x_sub_list[j] = real_x_sub
-        real_y_sub_list[j] = real_y_sub
-        alpha_0_sub_list[j] = alpha_0_sub
-        r_t_sub_list[j] = r_t_sub
-        R_sub = np.sqrt((imxgrid-x_sub-x_lens)**2 + (imygrid-y_sub-y_lens)**2)
-
-        alpha_sub_x = (alpha_0_sub * (r_t_sub + R_sub - np.sqrt(r_t_sub**2 + R_sub**2))
-                       * (imxgrid-x_lens-x_sub)* 1/R_sub**2)
-        alpha_sub_y = (alpha_0_sub * (r_t_sub + R_sub - np.sqrt(r_t_sub**2 + R_sub**2))
-                       * (imygrid-y_lens-y_sub)* 1/R_sub**2)
-        alpha_sub_x_list[j] = alpha_sub_x
-        alpha_sub_y_list[j] = alpha_sub_y
-        has_subhalo_list[j] = 1.0
+        ####N_sub_workzone
 
 
-    alpha_sub_x_sum = sum(alpha_sub_x_list)
-    alpha_sub_y_sum = sum(alpha_sub_y_list)
+        N = npr.randint(1, 4)
+        x_sub_list = [0]*N
+        y_sub_list = [0]*N
+        alpha_0_sub_list = [0]*N
+        r_t_sub_list = [0]*N
+        real_x_sub_list = [0]*N
+        real_y_sub_list = [0]*N
+        has_subhalo_list = [0]*N
 
-    SIE = SIE_N_sub(imsize=imsize)
+        alpha_sub_x_list = [0]*N
+        alpha_sub_y_list = [0]*N
 
-    srxgrid,srygrid, srxgrid_no_sub, srygrid_no_sub  = SIE.ray_trace(lens_scale=lens_scale, x_lens=x_lens,
-                                                        y_lens=y_lens, elp=elp, elp_angle=elp_angle, ex_shear_x=ex_shear_x,
-                                                        ex_shear_y=ex_shear_y, alpha_x_real= alpha_sub_x_sum,
-                                                        alpha_y_real= alpha_sub_y_sum)
-    finterp = sp.interpolate.RectBivariateSpline(SIE.image_x, SIE.image_y, true_source, kx=1, ky=1)
-    image_sub = finterp.ev(srygrid.ravel(),srxgrid.ravel()).reshape(srxgrid.shape)
-    image_no_sub = finterp.ev(srygrid_no_sub.ravel(),srxgrid_no_sub.ravel()).reshape(srxgrid.shape)
+        imsize = imsize
+        image_x = np.linspace(-1,1, imsize)
+        image_y = np.linspace(-1,1, imsize)
+        imxgrid, imygrid = np.meshgrid(image_x, image_y)
+        for j in range(N): #npr.choice(N,(npr.randint(5)+1)):
+            alpha_0_sub = 0.15#npr.uniform(0.1, 0.2)#0.1
+            r_t_sub = 0.4 #npr.uniform(0.02, 0.07)# 0.04
+            r_sub = lens_scale
+            phi = 2 * np.pi * npr.random_sample()
+            x_sub = r_sub * np.cos(phi)
+            y_sub = r_sub * np.sin(phi)
+            real_x_sub = x_sub + x_lens
+            real_y_sub = y_sub + y_lens
+            x_sub_list[j] = x_sub
+            y_sub_list[j] = y_sub
+            real_x_sub_list[j] = real_x_sub
+            real_y_sub_list[j] = real_y_sub
+            alpha_0_sub_list[j] = alpha_0_sub
+            r_t_sub_list[j] = r_t_sub
+            R_sub = np.sqrt((imxgrid-x_sub-x_lens)**2 + (imygrid-y_sub-y_lens)**2)
 
-    plt.subplot(1, 3, 1)
-    plt.imshow(true_source)
-    plt.title("source")
-
-    plt.subplot(1, 3, 2)
-    plt.imshow(image_sub)
-    plt.title("lensing_image")
-
-    plt.subplot(1, 3, 3)
-    plt.imshow(image_no_sub)
-    plt.title("lensing_image_no_sub")
-    plt.show()
+            alpha_sub_x = (alpha_0_sub * (r_t_sub + R_sub - np.sqrt(r_t_sub**2 + R_sub**2))
+                           * (imxgrid-x_lens-x_sub)* 1/R_sub**2)
+            alpha_sub_y = (alpha_0_sub * (r_t_sub + R_sub - np.sqrt(r_t_sub**2 + R_sub**2))
+                           * (imygrid-y_lens-y_sub)* 1/R_sub**2)
+            alpha_sub_x_list[j] = alpha_sub_x
+            alpha_sub_y_list[j] = alpha_sub_y
+            has_subhalo_list[j] = 1.0
 
 
-    has_subhalo = 1.0
-    image_sub = 100 * np.array(image_sub)
-    image_sub = image_sub.astype(int)
-    lens_sub_name = "lens_sub" '_' + "%07d" % (index+1)
-    outF = open(folder+ lens_sub_name + '.txt', "w+")
-    cv2.imwrite(folder + lens_sub_name + '.png', image_sub)
-    outF.write(str(round(lens_scale,4)) + "," +str(round(x_lens,4)) + ","
-                +str(round(y_lens,4)) + ","  +str(round(elp,4)) + ","
-                +str(round(elp_angle,4)) + ","
-                +str(round(ex_shear_x,4)) + "," + str(round(ex_shear_y,4)) + ","
-                +str(round(has_subhalo,4)))
-    outF.write("\n")
-    for j in range(N):
-        outF.write(str(round(alpha_0_sub_list[j],4)) + "," +str(round(r_t_sub_list[j],4)) + ","
-                    +str(round(real_x_sub_list[j],4)) + ","  +str(round(real_y_sub_list[j],4)) + ","
-                    +str(round(has_subhalo_list[j],4)))
+        alpha_sub_x_sum = sum(alpha_sub_x_list)
+        alpha_sub_y_sum = sum(alpha_sub_y_list)
+
+        SIE = SIE_N_sub(imsize=imsize)
+
+        srxgrid,srygrid, srxgrid_no_sub, srygrid_no_sub  = SIE.ray_trace(lens_scale=lens_scale, x_lens=x_lens,
+                                                            y_lens=y_lens, elp=elp, elp_angle=elp_angle, ex_shear_x=ex_shear_x,
+                                                            ex_shear_y=ex_shear_y, alpha_x_real= alpha_sub_x_sum,
+                                                            alpha_y_real= alpha_sub_y_sum)
+        finterp = sp.interpolate.RectBivariateSpline(SIE.image_x, SIE.image_y, true_source, kx=1, ky=1)
+        image_sub = finterp.ev(srygrid.ravel(),srxgrid.ravel()).reshape(srxgrid.shape)
+        image_no_sub = finterp.ev(srygrid_no_sub.ravel(),srxgrid_no_sub.ravel()).reshape(srxgrid.shape)
+
+        if show_image:
+            plt.subplot(1, 3, 1)
+            plt.imshow(true_source)
+            plt.title("source")
+
+            plt.subplot(1, 3, 2)
+            plt.imshow(image_sub)
+            plt.title("lensing_image")
+
+            plt.subplot(1, 3, 3)
+            plt.imshow(image_no_sub)
+            plt.title("lensing_image_no_sub")
+            plt.show()
+
+
+        has_subhalo = 1.0
+        image_sub = 100 * np.array(image_sub)
+        image_sub = image_sub.astype(int)
+        lens_sub_name = "lens_sub" '_' + "%07d" % (index+1)
+        outF = open(folder+ lens_sub_name + '.txt', "w+")
+        cv2.imwrite(folder + lens_sub_name + '.png', image_sub)
+        outF.write(str(round(lens_scale,4)) + "," +str(round(x_lens,4)) + ","
+                    +str(round(y_lens,4)) + ","  +str(round(elp,4)) + ","
+                    +str(round(elp_angle,4)) + ","
+                    +str(round(ex_shear_x,4)) + "," + str(round(ex_shear_y,4)) + ","
+                    +str(round(has_subhalo,4)))
         outF.write("\n")
-    outF.close()
-    index += 1
+        for j in range(N):
+            outF.write(str(round(alpha_0_sub_list[j],4)) + "," +str(round(r_t_sub_list[j],4)) + ","
+                        +str(round(real_x_sub_list[j],4)) + ","  +str(round(real_y_sub_list[j],4)) + ","
+                        +str(round(has_subhalo_list[j],4)))
+            outF.write("\n")
+        outF.close()
+        index += 1
 
-    has_subhalo = 0.0
-    image_sub = 100 * np.array(image_no_sub)
-    image_sub = image_sub.astype(int)
-    lens_sub_name = "lens_sub" '_' + "%07d" % (index+1)
-    outF = open(folder+ lens_sub_name + '.txt', "w+")
-    cv2.imwrite(folder + lens_sub_name + '.png', image_sub)
-    outF.write(str(round(lens_scale,4)) + "," +str(round(x_lens,4)) + ","
-                +str(round(y_lens,4)) + ","  +str(round(elp,4)) + ","
-                +str(round(elp_angle,4)) + ","
-                +str(round(ex_shear_x,4)) + "," + str(round(ex_shear_y,4)) + ","
-                +str(round(has_subhalo,4)))
-    outF.write("\n")
-    for j in range(N):
-        outF.write(str(round(alpha_0_sub_list[j],4)) + "," +str(round(r_t_sub_list[j],4)) + ","
-                    +str(round(real_x_sub_list[j],4)) + ","  +str(round(real_y_sub_list[j],4)) + ","
-                    +str(round(has_subhalo_list[j],4)))
+        has_subhalo = 0.0
+        image_sub = 100 * np.array(image_no_sub)
+        image_sub = image_sub.astype(int)
+        lens_sub_name = "lens_sub" '_' + "%07d" % (index+1)
+        outF = open(folder+ lens_sub_name + '.txt', "w+")
+        cv2.imwrite(folder + lens_sub_name + '.png', image_sub)
+        outF.write(str(round(lens_scale,4)) + "," +str(round(x_lens,4)) + ","
+                    +str(round(y_lens,4)) + ","  +str(round(elp,4)) + ","
+                    +str(round(elp_angle,4)) + ","
+                    +str(round(ex_shear_x,4)) + "," + str(round(ex_shear_y,4)) + ","
+                    +str(round(has_subhalo,4)))
         outF.write("\n")
-    outF.close()
-    index += 1
+        for j in range(N):
+            outF.write(str(round(alpha_0_sub_list[j],4)) + "," +str(round(r_t_sub_list[j],4)) + ","
+                        +str(round(real_x_sub_list[j],4)) + ","  +str(round(real_y_sub_list[j],4)) + ","
+                        +str(round(has_subhalo_list[j],4)))
+            outF.write("\n")
+        outF.close()
+        index += 1

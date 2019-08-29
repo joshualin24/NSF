@@ -1,0 +1,9 @@
+numpy
+scipy
+astropy
+matplotlib
+cv2
+pytorch
+tqdm
+argparse
+PIL

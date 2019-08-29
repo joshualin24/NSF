@@ -207,7 +207,7 @@ train_loader = torch.utils.data.DataLoader(DMSDataset(folder, train=True, transf
 #-------------------------------------------------------------------------------------------
 if __name__ == '__main__':
 
-    root_folder = './saved_model/'
+    root_folder = './saved_model_I/'
     if not os.path.exists(root_folder):
         os.mkdir(root_folder)
 
@@ -228,9 +228,6 @@ if __name__ == '__main__':
 
     best_accuracy = float("inf")
 
-    #if os.path.exists('./saved_model/densenetDMS'):
-        #net = torch.load('./saved_model/densenetDMS')
-        #print('loaded mdl!')
 
     for epoch in range(10):
 
@@ -252,9 +249,8 @@ if __name__ == '__main__':
             loss_subhalo = loss_fn2(output_subhalo.unsqueeze(3), target_subhalo.unsqueeze(3))
             loss_subhalo = torch.mean(torch.mean(torch.mean(loss_subhalo,dim=3),dim=2),dim=1)
 
-            loss = torch.mean(loss_fn(output_macro[:,:-1], target_macro[:,:-1])) + \
-                   torch.mean(loss_fn2(output_macro[:,-1], target_macro[:,-1]))
-            loss += torch.mean(target_macro[:,-1].unsqueeze(1) * loss_subhalo)
+
+            loss = torch.mean(loss_subhalo)
 
             square_diff = (output_macro[:,:-1] - target_macro[:,:-1])**2
             accuracy = ((torch.abs(F.sigmoid(output_macro[:,-1].unsqueeze(1)) - target_macro[:,-1].unsqueeze(1))<=0.5).sum()).item()
@@ -270,7 +266,7 @@ if __name__ == '__main__':
         avg_rms = total_rms / (total_counter)
 
         # print test loss and tets rms
-        print(epoch, 'Train loss (averge per batch wise):', total_loss/(total_counter), ' RMS_Macro (average per batch wise):', np.array_str(avg_rms, precision=3))
+        print(epoch, 'Train loss (averge per batch wise):', total_loss/(total_counter))
 
         with torch.no_grad():
             net.eval()
@@ -293,14 +289,7 @@ if __name__ == '__main__':
                 loss_subhalo = loss_fn2(output_subhalo.unsqueeze(3), target_subhalo.unsqueeze(3))
                 loss_subhalo = torch.mean(torch.mean(torch.mean(loss_subhalo,dim=3),dim=2),dim=1)
 
-
-                loss = torch.mean(loss_fn(output_macro[:,:-1], target_macro[:,:-1])) + \
-                       torch.mean(loss_fn2(output_macro[:,-1], target_macro[:,-1]))
-                loss += torch.mean(target_macro[:,-1].unsqueeze(1) * loss_subhalo)
-
-                square_diff = (output_macro[:,:-1] - target_macro[:,:-1])**2
-                accuracy = ((torch.abs(F.sigmoid(output_macro[:,-1].unsqueeze(1)) - target_macro[:,-1].unsqueeze(1))<=0.5).sum()).item()
-                total_rms += np.append(torch.sqrt(torch.mean(square_diff,dim=0)).detach().cpu().numpy(),accuracy / glo_batch_size)
+                loss = torch.mean(loss_subhalo)
 
                 total_loss += loss.item()
                 total_counter += 1
@@ -308,15 +297,12 @@ if __name__ == '__main__':
                 if batch_idx % test_num_batch == 0 and batch_idx != 0:
                     break
 
-            # Collect RMS over each label
-            avg_rms = total_rms / (total_counter)
 
-            # print test loss and tets rms
-            print(epoch, 'Test loss (averge per batch wise):', total_loss/(total_counter), ' RMS_Macro (average per batch wise):', np.array_str(avg_rms, precision=3))
+            print(epoch, 'Test loss (averge per batch wise):', total_loss/(total_counter))
 
             if total_loss/(total_counter) < best_accuracy:
                 best_accuracy = total_loss/(total_counter)
-                torch.save(net, './saved_model/' + save_fils[args.net])
+                torch.save(net, root_folder + save_fils[args.net])
                 print("saved to file.")
 
 cv2.destroyAllWindows()

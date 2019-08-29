@@ -35,7 +35,7 @@ TRAINING_SAMPLES = 50000
 TESTING_SAMPLES = 10000
 
 folder = '/media/joshua/38B6C6E7B6C6A4AA/v0710/'
-model_path = './0828_saved_model/'
+model_path = './saved_model_II/'
 glo_batch_size = 10
 test_num_batch = 50
 N_GRID = 56
@@ -356,7 +356,7 @@ if __name__ == '__main__':
                 # Calculate Losses
                 loss_subhalo = loss_bce(output_subhalo.unsqueeze(3), target_subhalo.unsqueeze(3))
 
-                loss = torch.mean(loss_subhalo) #+ torch.mean(loss_subhalo_mass) #+ loss_macro_has_subhalo
+                loss = torch.mean(loss_subhalo)
 
                 total_loss += loss.item()
                 total_counter += 1

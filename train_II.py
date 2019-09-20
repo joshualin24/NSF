@@ -34,7 +34,8 @@ np.random.seed(999)
 TRAINING_SAMPLES = 50000
 TESTING_SAMPLES = 10000
 
-folder = '/media/joshua/38B6C6E7B6C6A4AA/v0710/'
+#folder = '/media/joshua/38B6C6E7B6C6A4AA/v0710/'
+folder = '/media/joshua/HDD_fun2/v0914/'
 model_path = './saved_model_II/'
 glo_batch_size = 10
 test_num_batch = 50
@@ -309,7 +310,7 @@ if __name__ == '__main__':
 
     for index in range(1):
 
-        if not os.path.exists('/media/joshua/38B6C6E7B6C6A4AA/v0710/train_'+str(index)):
+        if not os.path.exists(folder + 'train_'+str(index)):
             continue
 
         print('Traning on dataset #',str(index))

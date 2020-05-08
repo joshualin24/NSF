@@ -53,7 +53,7 @@ def draw_macro_lens(npix,pix_res,parameter_rms=[0.1,5*10**11,0.4,2*np.pi,0.04,0.
     return lens
 
 
-def draw_subhalo_population(lens,halo_mass=10**12.3,mass_cutoff=10**9):
+def draw_subhalo_population(lens,halo_mass=10**12.3,mass_cutoff=10**8.8):
     '''
     Given a lens, a halo mass for that lens, and a mass cutoff, draw a subhalo
     population from the aquarius simulation.
@@ -365,14 +365,14 @@ if __name__=="__main__":
 
     show_image = False
     IsTrain = args.IsTrain
-    num_folder = 1
+    num_folder = 10
     if IsTrain:
-        num_samples = 50
+        num_samples = 50000
     else:
-        num_samples = 10
+        num_samples = 10000
 
 
-    root_folder = "/media/joshua/HDD_fun2/v0828/"
+    root_folder = "/media/joshua/Milano/NSF_Simulation_II/"
     if not os.path.exists(root_folder):
         os.mkdir(root_folder)
 
